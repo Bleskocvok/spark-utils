@@ -316,9 +316,12 @@ int main(int argc, char** argv)
         int count = count_files(folder);
         char* path = NULL;
 
+        if (count < 1)
+            continue;
+
         while (1)
         {
-            long idx = uniform_random(0, count > 0 ? count - 1 : 0);
+            long idx = uniform_random(0, count - 1);
             path = file_at_idx(folder, idx);
 
             if (!path)
