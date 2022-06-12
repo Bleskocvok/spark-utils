@@ -12,7 +12,9 @@
 #include <dirent.h>         //             opendir, dirfd
 #include <stdlib.h>         // lrand48, srand48
 
-#include <signal.h>         // sigaction
+#include <signal.h>         // sig_atomic_t, SIG*, sigaction, sigemptyset,
+                            // sigaddset, sigprocmask, sigsuspend
+#include <sys/time.h>       // setitimer
 
 #include <time.h>           // time
 #include <stdio.h>          // *printf
@@ -20,6 +22,10 @@
 #include <errno.h>          // errno
 #include <stdarg.h>         // va_args
 #include <string.h>         // strlen, strcmp, memcpy
+
+
+#define SIZE(lst) \
+    (sizeof(lst) / sizeof(*(lst)))
 
 
 int change_wallpaper(char* path)
@@ -220,18 +226,50 @@ char* file_at_idx(char* folder, int idx)
 
 static const int term_sigs[] =
 {
-    SIGTERM, SIGINT, SIGABRT, SIGQUIT,
+    SIGTERM, SIGINT, SIGABRT, SIGQUIT, SIGALRM,
 };
+
 
 volatile sig_atomic_t awoken = 0;
 volatile sig_atomic_t termed = 0;
 
 
-// awaken, awaken, awaken, awaken
-// take the land that must be taken
-void awaken()    { awoken = 1; }
+void handler(int sig, siginfo_t* info, void* ucontext)
+{
+    (void) info;
+    (void) ucontext;
 
-void terminate() { termed = 1; }
+    if (sig == SIGALRM)
+    {
+        awoken = 1;
+        return;
+    }
+    termed = 1;
+}
+
+
+void setup_term_signals()
+{
+    for (size_t i = 0; i < SIZE(term_sigs); i++)
+    {
+        struct sigaction act =
+        {
+            .sa_sigaction = handler,
+            .sa_flags = SA_SIGINFO,
+        };
+        sigaction(term_sigs[i], &act, NULL);
+    }
+}
+
+
+int setup_timer(long seconds)
+{
+    struct itimerval interval =
+    {
+        .it_value = { .tv_sec = seconds, .tv_usec = 0 }
+    };
+    return setitimer(ITIMER_REAL, &interval, NULL);
+}
 
 
 int main(int argc, char** argv)
@@ -250,24 +288,30 @@ int main(int argc, char** argv)
     if (end == argv[1] || err != 0)
         return error("invalid number\n"), EXIT_FAILURE;
 
+    setup_term_signals();
+
+    sigset_t set,
+             old;
+    sigemptyset(&set);
+
+    for (size_t i = 0; i < SIZE(term_sigs); i++)
+        sigaddset(&set, term_sigs[i]);
+
+    if (sigprocmask(SIG_BLOCK, &set, &old) == -1)
+        return perror("sigprocmask"), EXIT_FAILURE;
+
     char* folder = argv[2];
 
     srand48(time(NULL));
 
-    {
-        struct sigaction act = { .sa_handler = terminate };
-        sigaction(SIGTERM, &act, NULL);
-    }
-    {
-        struct sigaction act = { .sa_handler = terminate };
-        sigaction(SIGALRM, &act, NULL);
-    }
-
-
     char* prev = NULL;
     while (1)
     {
-        sleep(minutes * 60);
+        setup_timer(minutes * 60);
+        sigsuspend(&old);
+
+        if (termed)
+            break;
 
         int count = count_files(folder);
         char* path = NULL;
@@ -287,12 +331,12 @@ int main(int argc, char** argv)
             }
 
             change_wallpaper(path);
-            printf("%s\n", path);
             break;
         }
         free(prev);
         prev = path;
     }
+
     free(prev);
 
     return 0;
