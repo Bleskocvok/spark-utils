@@ -1,5 +1,5 @@
 
-CFLAGS ?= -Wall -Wextra -O2
+CFLAGS ?= -std=c99 -Wall -Wextra -O2
 
 SRC = wallpie.c
 
