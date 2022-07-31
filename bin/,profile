@@ -1,0 +1,13 @@
+#!/bin/sh
+
+valgrind --tool=callgrind $@ &
+
+pid="$!"
+
+wait "$pid"
+
+file="callgrind.out.$pid"
+
+kcachegrind "$file"
+
+rm "$file"
