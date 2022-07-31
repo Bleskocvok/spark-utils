@@ -25,7 +25,7 @@ notifAppName, notifHeading, notifContent, notifImage :: String
 notifAppName = "Teaman"
 notifHeading = "Teaman"
 notifContent = "Tea!"
-notifImage   = "~/projects/control/tea-bot/daemon/icon.png"
+notifImage   = "~/.user-utils/tea/icon.png"
 
 
 msToUs :: Num a => a -> a
