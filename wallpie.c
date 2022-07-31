@@ -11,10 +11,10 @@
 #include <unistd.h>         // fork                        *stat*
 #include <dirent.h>         //             opendir, dirfd
 #include <stdlib.h>         // lrand48, srand48
-
 #include <signal.h>         // sig_atomic_t, SIG*, sigaction, sigemptyset,
                             // sigaddset, sigprocmask, sigsuspend
 #include <sys/time.h>       // setitimer
+#include <syslog.h>         // syslog, openlog
 
 #include <time.h>           // time
 #include <stdio.h>          // *printf
@@ -300,6 +300,9 @@ int main(int argc, char** argv)
     if (sigprocmask(SIG_BLOCK, &set, &old) == -1)
         return perror("sigprocmask"), EXIT_FAILURE;
 
+    openlog(argv[0], 0, 0);
+    syslog(LOG_INFO, "(%s) started", argv[0]);
+
     char* folder = argv[2];
 
     srand48(time(NULL));
@@ -334,6 +337,7 @@ int main(int argc, char** argv)
             }
 
             change_wallpaper(path);
+            syslog(LOG_INFO, "change background: '%s'", path);
             break;
         }
         free(prev);
