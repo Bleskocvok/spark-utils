@@ -298,21 +298,63 @@ int setup_timer(long seconds)
 }
 
 
+typedef struct
+{
+    long secs,
+         mins,
+         hours;
+} period_t;
+
+
+int parse_num(long* num, const char* str, char** new_end)
+{
+    char* end;
+    errno = 0;
+    *num = strtol(str, &end, 10);
+    int err = errno;
+    if (err == ERANGE)
+        return error("number too large\n"), -1;
+    if (end == str || err != 0)
+        return error("invalid number\n"), -1;
+    if (new_end)
+        *new_end = end;
+    return 0;
+}
+
+
+int parse_period(period_t* d, char* arg)
+{
+    *d = (period_t){ 0 };
+    while (arg[0])
+    {
+        long num = 0;
+        char* end = arg;
+        if (parse_num(&num, arg, &end) == -1)
+            return -1;
+        arg = end;
+
+        switch (arg[0])
+        {
+            case 'h': arg++; d->hours = num; break;
+            case 's': arg++; d->secs  = num; break;
+            case 'm': arg++; d->mins  = num; break;
+            default:         d->mins  = num; break;
+        }
+    }
+    return 0;
+}
+
+
 int main(int argc, char** argv)
 {
     if (argc < 3)
-        return error("usage: %s MINUTES WALLPAPER_DIR\n",
+        return error("usage: %s PERIOD WALLPAPER_DIR\n",
                      argc > 0 ? argv[0] : "./wallpie"),
                EXIT_FAILURE;
 
-    char* end;
-    errno = 0;
-    long minutes = strtol(argv[1], &end, 10);
-    int err = errno;
-    if (err == ERANGE)
-        return error("number too large\n"), EXIT_FAILURE;
-    if (end == argv[1] || err != 0)
-        return error("invalid number\n"), EXIT_FAILURE;
+    period_t period;
+    if (parse_period(&period, argv[1]) == -1)
+        return error("try e.g.: 0h1m3s\n"), EXIT_FAILURE;
 
     setup_term_signals();
 
@@ -336,7 +378,7 @@ int main(int argc, char** argv)
     char* prev = NULL;
     while (1)
     {
-        setup_timer(minutes * 60);
+        setup_timer(period.secs + period.mins * 60 + period.hours * 3600);
         sigsuspend(&old);
 
         if (termed)
