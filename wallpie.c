@@ -18,14 +18,32 @@
 
 #include <time.h>           // time
 #include <stdio.h>          // *printf
-#include <stdlib.h>         // strtol, EXIT_*
+#include <stdlib.h>         // strtol, EXIT_*, NULL, malloc
 #include <errno.h>          // errno
 #include <stdarg.h>         // va_args
-#include <string.h>         // strlen, strcmp, memcpy
+#include <string.h>         // strlen, strcmp, memcpy, strcat
 
 
 #define SIZE(lst) \
     (sizeof(lst) / sizeof(*(lst)))
+
+
+char* prepend_uri(const char* uri)
+{
+    static const char prefix[] = "file://";
+
+    size_t len = strlen(uri);
+
+    char* data = malloc(len + SIZE(prefix));
+    if (!data)
+        return NULL;
+
+    data[0] = '\0';
+
+    strcat(data, prefix);
+    strcat(data, uri);
+    return data;
+}
 
 
 int change_wallpaper(char* path)
@@ -37,8 +55,16 @@ int change_wallpaper(char* path)
 
     if (pid == 0)
     {
+        // need to add 'file://' prefix before the absolute path
+        char* uri = prepend_uri(path);
+
+        // ubuntu 22 - dark theme
         execlp("gsettings", "gsettings", "set", "org.gnome.desktop.background",
-               "picture-uri", path, NULL);
+               "picture-uri-dark", uri, NULL);
+
+        // // ubuntu 20.4
+        // execlp("gsettings", "gsettings", "set", "org.gnome.desktop.background",
+        //        "picture-uri", path, NULL);
         return 1;
     }
 
