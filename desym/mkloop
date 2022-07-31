@@ -1,0 +1,15 @@
+#!/bin/sh
+
+
+set -x
+
+N="$1"
+N_1=$(expr $N - 1)
+NAME="loop"
+
+for i in $(seq $N_1); do
+    ln -s $NAME$(expr $i + 1) $NAME$i
+done
+
+ln -s ${NAME}1 $NAME${N}
+

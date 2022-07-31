@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+set -x
+
+N="$1"
+N_1=$(expr $N - 1)
+NAME="long"
+
+for i in $(seq $N_1); do
+    ln -s $NAME$(expr $i + 1) $NAME$i
+done
+
+touch $NAME$N
