@@ -61,9 +61,6 @@ main :: IO ()
 main = do
     args <- getArgs
 
-    -- home <- homeDirectory <$> (getRealUserID >>= getUserEntryForID)
-    -- putStrLn home
-
     let len = length args
     when (len < 1)
         (putStrLn ("Invalid number of arguments: " ++ show len) >> exitFailure)
