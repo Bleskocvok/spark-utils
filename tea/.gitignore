@@ -3,6 +3,8 @@
 /*.hi
 /*.o
 
+/.*.dep
+
 # ignore discord bot for now
 /app/
 __pycache__/
