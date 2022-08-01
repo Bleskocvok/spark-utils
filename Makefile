@@ -2,7 +2,7 @@
 COPY = cp
 
 
-BIN = ,profile
+BIN = $(shell ls bin/)
 DEST_BIN = $(patsubst %,~/bin/%,$(BIN))
 
 
