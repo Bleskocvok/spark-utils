@@ -13,6 +13,12 @@
 #include <stdlib.h>         // lrand48, srand48
 
 
+
+//
+// ORIGINAL DISTRIBUTION FUNCTIONS
+//
+
+
 long uniform_random(long min, long max)
 {
     const long LRAND48_MAX = (1l << 31l) - 1l;  // is 2^31 - 1
@@ -38,6 +44,75 @@ long naive_random(long min, long max)
     long r = lrand48();
     return (r % k) + min;
 }
+
+
+//
+// “OPTIMIZED” DISTRIBUTION FUNCTIONS
+//
+
+
+typedef struct
+{
+    long treshold,
+         k,
+         min,
+         max,
+         mod;
+
+} uniform_t;
+
+
+typedef struct
+{
+    long min,
+         max,
+         k;
+
+} naive_t;
+
+
+void uniform_init(uniform_t* out, long min, long max)
+{
+    const long LRAND48_MAX = (1l << 31l) - 1l;
+
+    *out = (uniform_t){ 0 };
+
+    out->min = min;
+    out->max = max;
+    out->k = max - min + 1;
+    out->mod = (LRAND48_MAX + 1) % out->k;
+    out->treshold = LRAND48_MAX - out->mod;
+}
+
+
+long uniform_get(const uniform_t* out)
+{
+    long r;
+    do
+    {
+        r = lrand48();
+
+    } while (r > out->treshold);
+
+    return (r % out->k) + out->min;
+}
+
+
+void naive_init(naive_t* out, long min, long max)
+{
+    *out = (naive_t){ 0 };
+    out->min = min;
+    out->max = max;
+    out->k = max - min + 1;
+}
+
+
+long naive_get(const naive_t* out)
+{
+    long r = lrand48();
+    return (r % out->k) + out->min;
+}
+
 
 
 int get_seed(long* num, const char* filename)
@@ -107,15 +182,32 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // fprintf(stderr, "seed: %30ld\n", seed);
-
     srand48(seed);
 
-    for (long i = 0; i < count; ++i)
+    if (flag_use_bad)
     {
-        long n = flag_use_bad ? naive_random(min, max)
-                              : uniform_random(min, max);
-        printf("%ld\n", n);
+        fprintf(stderr, "using bad dist...\n");
+        naive_t dist;
+        naive_init(&dist, min, max);
+
+        for (long i = 0; i < count; ++i)
+        {
+            // long n = naive_random(min, max);
+            long n = naive_get(&dist);
+            printf("%ld\n", n);
+        }
+    }
+    else
+    {
+        uniform_t dist;
+        uniform_init(&dist, min, max);
+
+        for (long i = 0; i < count; ++i)
+        {
+            // long n = uniform_random(min, max);
+            long n = uniform_get(&dist);
+            printf("%ld\n", n);
+        }
     }
 
     return 0;

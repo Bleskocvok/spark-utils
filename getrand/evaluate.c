@@ -165,44 +165,47 @@ void get_histogram_better(FILE* file, int** out_hist, size_t* out_size,
 }
 
 
-// int main(int argc, char** argv)
-// {
-//     int* vec = 0;
-//     size_t count = 0;
+double get_median(const int* hist, size_t hist_size, size_t count)
+{
+    if (count == 0)
+        return 0;
 
-//     if (argc < 2)
-//     {
-//         getlines(stdin, &vec, &count);
-//     }
-//     else
-//     {
-//         FILE* file = fopen(argv[1], "r");
-//         if (!file)
-//         {
-//             perror(argv[1]);
-//             return 1;
-//         }
+    size_t rem = count;
+    size_t used = 0;
+    for (size_t i = 0; i < hist_size; ++i)
+    {
+        rem  -= hist[i];
+        used += hist[i];
 
-//         getlines(file, &vec, &count);
+        if (rem < used)
+            return i;
 
-//         fclose(file);
-//     }
+        if (rem == used)
+        {
+            for (size_t j = i + 1; j < hist_size; ++j)
+                if (hist[j] > 0)
+                    return (i + j) * 0.5;
+            return i;  // cannot happen if provided <count> is consistent
+        }
+    }
+    return hist_size - 1;
+}
 
-//     printf("total: %zd\n", count);
 
-//     int* hist = 0;
-//     size_t hist_size = 0;
+double get_avg(const int* hist, size_t hist_size, size_t count)
+{
+    if (count == 0)
+        return 0;
 
-//     get_histogram(vec, count, &hist, &hist_size);
-//     print_histogram(hist, hist_size, count);
+    double avg = 0;
 
-//     sub_info(hist, hist_size, count, 83648);
+    for (size_t i = 0; i < hist_size; ++i)
+        avg += i * (double) hist[i];
 
-//     free(hist);
-//     free(vec);
+    avg /= (double) count;
 
-//     return 0;
-// }
+    return avg;
+}
 
 
 int main(int argc, char** argv)
@@ -211,16 +214,20 @@ int main(int argc, char** argv)
     size_t hist_size = 0;
     size_t count = 0;
 
-    if (argc < 2)
+    int use_min_max = 1;
+    int print_hist  = 0;
+
+    if ((argc + 1) % 2 == 0)
     {
         get_histogram_better(stdin, &hist, &hist_size, &count);
     }
     else
     {
-        FILE* file = fopen(argv[1], "r");
+        const char* filename = argv[1];
+        FILE* file = fopen(filename, "r");
         if (!file)
         {
-            perror(argv[1]);
+            perror(filename);
             return 1;
         }
 
@@ -229,11 +236,35 @@ int main(int argc, char** argv)
         fclose(file);
     }
 
+    if (print_hist)
+    {
+        print_histogram(hist, hist_size, count);
+    }
+
     printf("total: %zd\n", count);
 
-    print_histogram(hist, hist_size, count);
+    long min = 0,
+         max = hist_size == 0 ? 0 : hist_size - 1;
 
-    sub_info(hist, hist_size, count, 83648);
+    double avg    = get_avg(   hist, hist_size, count);
+    double median = get_median(hist, hist_size, count);
+
+    printf("min=%ld\n"
+           "max=%ld\n"
+           "avg=%f\n"
+           "med=%f\n", min, max, avg, median);
+
+    if (use_min_max)
+    {
+        const long LRAND48_MAX = (1l << 31l) - 1l;  // is 2^31 - 1
+        long k = max - min + 1;
+        long mod = (LRAND48_MAX + 1) % k;
+
+        printf("  k=%ld\n"
+               "mod=%ld\n", k, mod);
+
+        sub_info(hist, hist_size, count, mod);
+    }
 
     free(hist);
 

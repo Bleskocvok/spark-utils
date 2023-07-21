@@ -1,6 +1,6 @@
 
 # CFLAGS += -std=c99 -Wall -Wextra -O2
-CFLAGS += -std=c99 -Wall -Wextra -O2 -march=native
+CFLAGS += -std=c99 -Wall -Wextra -O3 -march=native
 
 all: getrand evaluate
 
