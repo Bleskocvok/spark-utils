@@ -1,0 +1,6 @@
+[submodule "graphinator-lite"]
+	path = graphinator-lite
+	url = https://github.com/Bleskocvok/graphinator-lite
+[submodule "sudoku"]
+	path = sudoku
+	url = https://github.com/Bleskocvok/sudoku

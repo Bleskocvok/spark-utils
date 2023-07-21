@@ -14,7 +14,9 @@ INSTALL_SHELL_UTILS = $(patsubst %,$(DEST_BIN)/%,$(SHELL_UTILS))
 BIG = \
 	desym \
 	getrand \
+	graphinator-lite \
 	imgm \
+	sudoku \
 	wallpie
 
 INSTALL_BIG = $(patsubst %,install_%,$(BIG))
@@ -26,10 +28,16 @@ all: $(BIG)
 desym:
 	$(MAKE) -C $@ all
 
+graphinator-lite:
+	$(MAKE) -C $@ all
+
 getrand:
 	$(MAKE) -C $@ all
 
 imgm:
+	$(MAKE) -C $@ all
+
+sudoku:
 	$(MAKE) -C $@ all
 
 wallpie:
@@ -39,11 +47,18 @@ wallpie:
 install_desym: desym
 	install -m 0755 -T desym/desym $(DEST_BIN)/desym
 
+install_graphinator-lite: graphinator-lite
+	install -m 0755 -T graphinator-lite/gibgraph $(DEST_BIN)/gibgraph
+	install -m 0755 -T graphinator-lite/monitor $(DEST_BIN)/monitor
+
 install_getrand: getrand
 	install -m 0755 -T getrand/getrand $(DEST_BIN)/getrand
 
 install_imgm: imgm
 	install -m 0755 -T imgm/imgm $(DEST_BIN)/imgm
+
+install_sudoku: sudoku
+	install -m 0755 -T sudoku/sudoku $(DEST_BIN)/sudoku
 
 install_wallpie: wallpie
 	install -m 0755 -T wallpie/wallpie $(DEST_BIN)/wallpie
@@ -61,6 +76,9 @@ $(DEST_BIN)/%: $(DEST_BIN) shell/%
 
 
 install: $(INSTALL_SHELL_UTILS) $(INSTALL_BIG)
+	@echo ""
+	@echo "INSTALLED TO $(DEST_BIN)"
+	@echo "Remember to add that directory to PATH"
 
 uninstall:
 	$(RM) -r $(DEST_BIN)
@@ -82,53 +100,3 @@ distclean:
 .PHONY: all clean distclean \
 	install uninstall \
 	$(BIG) $(INSTALL_BIG) \
-
-
-# COPY = cp
-
-
-# BIN = $(shell ls bin/)
-# DEST_BIN = $(patsubst %,~/bin/%,$(BIN))
-
-
-# DIR = \
-# 	desym \
-# 	imgm
-
-# DEST_DIR = $(patsubst %,~/bin/%,$(DIR))
-
-
-# all: $(DEST_BIN) $(DEST_DIR)
-
-
-# ~/bin:
-# 	mkdir -p $@
-
-# ~/bin/,%: bin/,% ~/bin
-# 	$(COPY) $< $@
-
-# ~/bin/%: % ~/bin
-# 	$(MAKE) -C $* $*
-# 	$(COPY) $*/$* $@
-
-# uninstall:
-# 	$(RM) $(DEST_BIN)
-
-
-# clean:
-# 	for f in $(DIR); do	\
-# 		$(MAKE) -C $$f $@; \
-# 		echo; \
-# 	done
-
-# distclean:
-# 	for f in $(DIR); do	\
-# 		$(MAKE) -C $$f $@; \
-# 		echo; \
-# 	done
-
-
-# .PHONY: all clean distclean
-
-
-
