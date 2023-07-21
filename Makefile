@@ -8,7 +8,6 @@ DEST_BIN = $(patsubst %,~/bin/%,$(BIN))
 
 DIR = \
 	desym \
-	tea \
 	imgm
 
 DEST_DIR = $(patsubst %,~/bin/%,$(DIR))
@@ -26,11 +25,6 @@ all: $(DEST_BIN) $(DEST_DIR)
 ~/bin/%: % ~/bin
 	$(MAKE) -C $* $*
 	$(COPY) $*/$* $@
-
-
-tea: tea/icon.png
-	$(COPY) $^ ~/.user-utils/$@/
-
 
 uninstall:
 	$(RM) $(DEST_BIN)
