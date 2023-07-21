@@ -1,0 +1,43 @@
+#!/bin/sh
+
+[ -z "$1" ] && { echo "usage: $0 FILES... [-- ARGS...]"; exit 1; }
+
+COMPILER=g++
+
+TEMP_DIR=$(mktemp --tmpdir -d XXXXXXXXXXX)
+
+OUT="$TEMP_DIR/tmpcpp"
+
+CFLAGS="-std=c++20 -Wall -Wextra"
+
+FILES=""
+
+# echo "$@"
+
+while [ "$#" -gt 0 ]
+do
+    if [ "$1" = "--" ]; then shift 1; break; fi
+    FILES="$FILES $1"
+    shift 1
+done
+
+ARGS="$*"
+
+echo "$COMPILER $CFLAGS -o \"$OUT\" $FILES"
+$COMPILER $CFLAGS -o "$OUT" $FILES
+
+RET="$?"
+
+quit()
+{
+    rm -rf "$TEMP_DIR"
+    exit $1
+}
+
+if [ $RET = 0 ]; then
+    printf '%s %s\n\n' "$OUT" "$ARGS"
+    $OUT $ARGS
+    quit $?
+else
+    quit 1
+fi
