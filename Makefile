@@ -13,6 +13,7 @@ INSTALL_SHELL_UTILS = $(patsubst %,$(DEST_BIN)/%,$(SHELL_UTILS))
 
 BIG = \
 	desym \
+	erat \
 	getrand \
 	graphinator-lite \
 	imgm \
@@ -26,6 +27,9 @@ all: $(BIG)
 
 
 desym:
+	$(MAKE) -C $@ all
+
+erat:
 	$(MAKE) -C $@ all
 
 graphinator-lite:
@@ -46,6 +50,9 @@ wallpie:
 
 install_desym: desym
 	install -m 0755 -T desym/desym $(DEST_BIN)/desym
+
+install_erat: erat
+	install -m 0755 -T erat/gibprime $(DEST_BIN)/erat
 
 install_graphinator-lite: graphinator-lite
 	install -m 0755 -T graphinator-lite/gibgraph $(DEST_BIN)/gibgraph
