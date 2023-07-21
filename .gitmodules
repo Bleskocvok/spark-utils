@@ -4,3 +4,6 @@
 [submodule "sudoku"]
 	path = sudoku
 	url = https://github.com/Bleskocvok/sudoku
+[submodule "tabcat"]
+	path = tabcat
+	url = https://github.com/Bleskocvok/tabcat

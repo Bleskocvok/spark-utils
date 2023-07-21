@@ -18,6 +18,7 @@ BIG = \
 	graphinator-lite \
 	imgm \
 	sudoku \
+	tabcat \
 	wallpie
 
 INSTALL_BIG = $(patsubst %,install_%,$(BIG))
@@ -44,6 +45,9 @@ imgm:
 sudoku:
 	$(MAKE) -C $@ all
 
+tabcat:
+	$(MAKE) -C $@ all
+
 wallpie:
 	$(MAKE) -C $@ all
 
@@ -66,6 +70,9 @@ install_imgm: imgm
 
 install_sudoku: sudoku
 	install -m 0755 -T sudoku/sudoku $(DEST_BIN)/sudoku
+
+install_tabcat: tabcat
+	install -m 0755 -T tabcat/tabcat $(DEST_BIN)/tabcat
 
 install_wallpie: wallpie
 	install -m 0755 -T wallpie/wallpie $(DEST_BIN)/wallpie
