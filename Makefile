@@ -15,6 +15,7 @@ BIG = \
 	desym \
 	erat \
 	getrand \
+	gibpoopass \
 	graphinator-lite \
 	imgm \
 	sudoku \
@@ -33,10 +34,13 @@ desym:
 erat:
 	$(MAKE) -C $@ all
 
-graphinator-lite:
+getrand:
 	$(MAKE) -C $@ all
 
-getrand:
+gibpoopass:
+	$(MAKE) -C $@ all
+
+graphinator-lite:
 	$(MAKE) -C $@ all
 
 imgm:
@@ -64,6 +68,9 @@ install_graphinator-lite: graphinator-lite
 
 install_getrand: getrand
 	install -m 0755 -T getrand/getrand $(DEST_BIN)/getrand
+
+install_gibpoopass: gibpoopass
+	install -m 0755 -T gibpoopass/pass $(DEST_BIN)/gibpoopass
 
 install_imgm: imgm
 	install -m 0755 -T imgm/imgm $(DEST_BIN)/imgm
