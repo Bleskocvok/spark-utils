@@ -8,7 +8,7 @@
 #include <string.h>     // strncat, strdup, strncpy, strcmp, strstr
 #include <errno.h>      // errno
 
-#include <unistd.h>     // readlink
+#include <unistd.h>     // readlink, close
 #include <limits.h>     // PATH_MAX
 #include <libgen.h>     // dirname
 #include <sys/types.h>  // open
@@ -18,6 +18,14 @@
 #include <limits.h>     // realpath
 #include <stdlib.h>     // realpath
 
+
+void close_dir(int fd)
+{
+    if (fd == -1 || fd == AT_FDCWD)
+        return;
+
+    if (close(fd) == -1) perror("close");
+}
 
 
 int main(int argc, char** argv)
@@ -61,6 +69,7 @@ int main(int argc, char** argv)
             dir_buf = strdup(current);
             if (!dir_buf)
                 perror("alloc"), exit(2);
+
             dir = dirname(dir_buf);
             new_dir = open(dir, O_PATH | O_NOFOLLOW);
         }
@@ -74,9 +83,12 @@ int main(int argc, char** argv)
                 perror("error");
                 return 1;
             }
+            close_dir(dir_fd);
             return 0;
         }
 
+        if (new_dir != dir_fd)
+            close_dir(dir_fd);
         dir_fd = new_dir;
         buffer[r] = 0;
 
@@ -84,7 +96,7 @@ int main(int argc, char** argv)
 
         if (strcmp(current, detector) == 0)
         {
-            free(dir);
+            free(dir_buf);
             fprintf(stderr, "error: cyclic symlinks\n");
             return 1;
         }
@@ -96,6 +108,7 @@ int main(int argc, char** argv)
         }
     }
 
-    free(dir);
+    close_dir(dir_fd);
+    free(dir_buf);
     return 1;
 }
