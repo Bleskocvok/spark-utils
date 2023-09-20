@@ -48,8 +48,11 @@ int main(int argc, char** argv)
     size_t next = 1;
 
     int dir_fd = AT_FDCWD;
+    int new_dir = -1;
     char* dir = NULL;
     char* dir_buf = NULL;
+
+    int rv = 1;
 
     while (1)
     {
@@ -60,7 +63,7 @@ int main(int argc, char** argv)
 
         printf("%s\n", current);
 
-        int new_dir = dir_fd;
+        new_dir = dir_fd;
         char* slash = strstr(current, "/");
 
         if (slash != NULL)
@@ -71,20 +74,26 @@ int main(int argc, char** argv)
                 perror("alloc"), exit(2);
 
             dir = dirname(dir_buf);
-            new_dir = open(dir, O_PATH | O_NOFOLLOW);
+            new_dir = openat(dir_fd, dir, O_RDONLY | O_DIRECTORY | O_NOFOLLOW, 0);
+
+            if (new_dir == -1)
+            {
+                perror("openat");
+                fprintf(stderr, "file: %s\n", dir);
+                goto error;
+            }
         }
 
         ssize_t r;
         if ((r = readlinkat(dir_fd, current, buffer, buflen)) == -1)
         {
-            free(dir_buf);
             if (errno != EINVAL)
             {
                 perror("error");
-                return 1;
+                goto error;
             }
-            close_dir(dir_fd);
-            return 0;
+            // successfully exitting
+            break;
         }
 
         if (new_dir != dir_fd)
@@ -96,9 +105,8 @@ int main(int argc, char** argv)
 
         if (strcmp(current, detector) == 0)
         {
-            free(dir_buf);
             fprintf(stderr, "error: cyclic symlinks\n");
-            return 1;
+            goto error;
         }
 
         if (++i == next)
@@ -108,7 +116,10 @@ int main(int argc, char** argv)
         }
     }
 
+    rv = 0;
+error:
     close_dir(dir_fd);
+    if (new_dir != dir_fd) close_dir(new_dir);
     free(dir_buf);
-    return 1;
+    return rv;
 }
