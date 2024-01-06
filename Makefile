@@ -18,6 +18,7 @@ BIG = \
 	gibpoopass \
 	graphinator-lite \
 	imgm \
+	sparky-tree \
 	sudoku \
 	tabcat \
 	wallpie
@@ -44,6 +45,9 @@ graphinator-lite:
 	$(MAKE) -C $@ all
 
 imgm:
+	$(MAKE) -C $@ all
+
+sparky-tree:
 	$(MAKE) -C $@ all
 
 sudoku:
@@ -74,6 +78,9 @@ install_gibpoopass: gibpoopass
 
 install_imgm: imgm
 	install -m 0755 -T imgm/imgm $(DEST_BIN)/imgm
+
+install_sparky-tree: sparky-tree
+	install -m 0755 -T sparky-tree/tree $(DEST_BIN)/tree
 
 install_sudoku: sudoku
 	install -m 0755 -T sudoku/sudoku $(DEST_BIN)/sudoku

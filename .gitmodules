@@ -7,3 +7,6 @@
 [submodule "tabcat"]
 	path = tabcat
 	url = https://github.com/Bleskocvok/tabcat
+[submodule "sparky-tree"]
+	path = sparky-tree
+	url = https://github.com/Bleskocvok/sparky-tree
