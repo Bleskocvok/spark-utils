@@ -6,7 +6,8 @@ SHELL_UTILS = \
 	,runc \
 	,runcpp \
 	,profile \
-	,tester
+	,tester \
+	tea
 
 INSTALL_SHELL_UTILS = $(patsubst %,$(DEST_BIN)/%,$(SHELL_UTILS))
 
