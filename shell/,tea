@@ -1,0 +1,85 @@
+#!/bin/bash
+
+usage="Usage: tea [-h] [-q ID] [xx:xx:xx]";
+while getopts ":hq:" x; do
+    case $x in
+        h)
+            echo "$usage"
+            exit 0
+        ;;
+        q)
+            kill -SIGTERM "$OPTARG" || {
+                echo "Could not abort $OPTARG"
+                exit 1
+            }
+            exit
+        ;;
+    esac
+done
+
+shift $(( OPTIND - 1 ))
+
+get_secs() {
+    local str="$1"
+    if  grep "^[0-9][0-9]*[:][0-5][0-9][:][0-5][0-9]" <<< "$str" > /dev/null; then
+        local hh=$(( $(cut -d':' -f1 <<< "$str") ))
+        local mm=$(( $(cut -d':' -f2 <<< "$str") ))
+        local ss=$(( $(cut -d':' -f3 <<< "$str") ))
+        echo "$(( hh * 3600 + mm * 60 + ss ))"
+        return
+    elif grep "^[0-9][0-9]*[:][0-5][0-9]" <<< "$str" > /dev/null; then
+        local mm=$(( $(cut -d':' -f1 <<< "$str") ))
+        local ss=$(( $(cut -d':' -f2 <<< "$str") ))
+        echo "$(( mm * 60 + ss ))"
+        return
+    elif grep "^[0-9][0-9]*" <<< "$str" > /dev/null; then
+        echo "$(( str ))"
+        return
+    else
+        >&2 echo "ERROR: Invalid time format. Must be xx:xx:xx."
+        return 1
+    fi
+}
+
+secs=$(( $(get_secs "$1") ))
+
+begin=$(date +%s%3N)
+end=$(( begin + secs * 1000 ))
+
+aborted() {
+    notify-send -a tea -r "$id" -u normal "Tea aborted" ":("
+    exit 0
+}
+
+trap aborted SIGTERM SIGINT
+
+id=$(notify-send -a tea -u low -p "...")
+
+is_finished() {
+    now=$(date +%s%3N)
+    [ "$now" -ge "$end" ] || return 1
+}
+
+brewing() {
+    local s=$(( ( remains + 999 ) / 1000 ))
+    notify-send -a tea -r "$id" -u low -h "int:value:$percent" "Tea brewing" "Wait $s seconds.\n\n(id: $$)"
+}
+
+ready() {
+    notify-send -a tea -r "$id" -u critical "Tea done" "Tea is ready."
+}
+
+prev=0
+prevcent=0
+
+while ! is_finished; do
+    remains="$(( end - now ))"
+    percent=$(( (now - begin) / (secs * 10) ))
+    [ "$remains" != "$prev" -o "$prevcent" != "$percent" ] &&
+        brewing
+    prev="$remains"
+    prevcent="$percent"
+    sleep 0.25
+done
+
+ready
