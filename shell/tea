@@ -37,11 +37,14 @@ get_secs() {
         return
     else
         >&2 echo "ERROR: Invalid time format. Must be xx:xx:xx."
-        return 1
+        exit 1
     fi
 }
 
-secs=$(( $(get_secs "$1") ))
+res="$(get_secs "$1")"
+[ "$?" != 0 ] && exit 1
+
+secs=$(( "$res" ))
 
 begin=$(date +%s%3N)
 end=$(( begin + secs * 1000 ))
